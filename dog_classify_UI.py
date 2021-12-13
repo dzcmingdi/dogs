@@ -9,16 +9,17 @@ from torch._C import set_flush_denormal
 from model_vis import RoundShadow
 from model_vis import circle_corner, paint_object
 from dog_classify_main import DogClassify
-import os
-
-
 #主界面类
 class menu_page(QtWidgets.QMainWindow, RoundShadow):
     def __init__(self, flag):
         super(menu_page, self).__init__()
           #窗口尺寸
+        self.resize(1000, 800)
         self.setWindowTitle("dog_classify")
         self.flag = flag
+
+        self.width = self.size().width()
+        self.height = self.size().height()
 
         self.labelText = QLabel(self)
         self.labelText.setFixedSize(400, 400)
@@ -42,11 +43,22 @@ class menu_page(QtWidgets.QMainWindow, RoundShadow):
         self.btnopen_predictdog.setFixedSize(100, 100)
         self.btnopen_predictdog.setStyleSheet("QPushButton{border-image:url(./data/images/icon1.png)}")
 
+        #设置样式
+        self.left_close = QPushButton(self) # 关闭按钮 
+        self.left_visit = QPushButton(self) # 空白按钮 
+        self.left_mini = QPushButton(self)  # 最小化按钮
 
+        self.left_close.move(0.97 * self.width, 0.03 * self.height)
+        self.left_visit.move(0.95 * self.width, 0.03 * self.height)
+        self.left_mini.move(0.93* self.width, 0.03 * self.height)
 
         self.left_close.clicked.connect(self.close)
         self.left_visit.clicked.connect(self.initUI)
         self.left_mini.clicked.connect(self.showMinimized)
+
+        self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
+        self.left_visit.setFixedSize(15, 15)  # 设置按钮大小 
+        self.left_mini.setFixedSize(15, 15) # 设置最小化按钮大小
 
         # spin_icon = QIcon('/data/images/paw1.png')
         # self.btnopen_predictdog.setIcon(spin_icon)#设置图标
@@ -56,9 +68,12 @@ class menu_page(QtWidgets.QMainWindow, RoundShadow):
         #             border:2px solid #F3F3F5;
         #             border-radius:35px;
         #             background:darkGray;}''')
+
+        self.left_close.setStyleSheet('''QPushButton{background:#F76677;border-radius:5px;}QPushButton:hover{background:red;}''') 
+        self.left_visit.setStyleSheet('''QPushButton{background:#F7D674;border-radius:5px;}QPushButton:hover{background:yellow;}''') 
+        self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
         self.labelText.setStyleSheet('background-color: rgb(20, 20, 0)')    #设置背景色
         self.labelText.setStyleSheet('font-size:40px;color:balck;font-family:黑体 ') #设置字体大小，字体颜色,字体
-
 #显示图片的label，目测八张
         self.label_dogtitle1 = QLabel(self)
         self.label_dogtitle2 = QLabel(self)
@@ -178,8 +193,13 @@ class dog_classify(QtWidgets.QMainWindow,RoundShadow):
 
       
     #窗口尺寸
+        
+        self.resize(1000, 800)
         self.setWindowTitle("狗类识别系统")
          #窗口尺寸
+        self.width = self.size().width()
+        self.height = self.size().height()
+
         self.halfwidth = self.width // 2
         self.halfheight = self.height // 2
 
@@ -221,7 +241,13 @@ class dog_classify(QtWidgets.QMainWindow,RoundShadow):
 
         self.btn_return.setStyleSheet("QPushButton{border-image:url(./data/images/return.png)}")
         #设置样式
+        self.left_close = QPushButton(self) # 关闭按钮 
+        self.left_visit = QPushButton(self) # 空白按钮 
+        self.left_mini = QPushButton(self)  # 最小化按钮
 
+        self.left_close.move(0.97 * self.width, 0.03 * self.height)
+        self.left_visit.move(0.95 * self.width, 0.03 * self.height)
+        self.left_mini.move(0.93* self.width, 0.03 * self.height)
 
         self.left_close.clicked.connect(self.close)
         self.left_visit.clicked.connect(self.initUI)
@@ -231,7 +257,13 @@ class dog_classify(QtWidgets.QMainWindow,RoundShadow):
 
         # self.setWindowOpacity(0.9) # 设置窗口透明度 
         # self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
+        self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
+        self.left_visit.setFixedSize(15, 15)  # 设置按钮大小 
+        self.left_mini.setFixedSize(15, 15) # 设置最小化按钮大小
 
+        self.left_close.setStyleSheet('''QPushButton{background:#F76677;border-radius:5px;}QPushButton:hover{background:red;}''') 
+        self.left_visit.setStyleSheet('''QPushButton{background:#F7D674;border-radius:5px;}QPushButton:hover{background:yellow;}''') 
+        self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
     #打开文件资源管理器
         self.flag = flag
         self.imgName = '1'
@@ -239,7 +271,6 @@ class dog_classify(QtWidgets.QMainWindow,RoundShadow):
         if self.flag == 1:
             self.initUI()
         self.drawn()
-
     def openimage(self):
         imgName, imgType = QFileDialog.getOpenFileName(self, "打开图片", "", "*.jpg;;*.png;;All Files(*)")
         jpg = QtGui.QPixmap(imgName)
@@ -323,6 +354,11 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.sortdog = 0
         self.boxes = boxes
 
+
+                
+        self.width = self.size().width()
+        self.height = self.size().height()
+
         self.halfwidth = self.width // 2
         self.halfheight = self.height // 2
 
@@ -330,6 +366,15 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.btn_return.move(0.01 * self.width, 0.03 * self.height)
         self.btn_return.clicked.connect(self.returnback)
         self.btn_return.setStyleSheet("QPushButton{border-image:url(./data/images/return.png)}")
+
+                #设置样式
+        self.left_close = QPushButton(self) # 关闭按钮 
+        self.left_visit = QPushButton(self) # 空白按钮 
+        self.left_mini = QPushButton(self)  # 最小化按钮
+
+        self.left_close.move(0.97 * self.width, 0.03 * self.height)
+        self.left_visit.move(0.95 * self.width, 0.03 * self.height)
+        self.left_mini.move(0.93* self.width, 0.03 * self.height)
 
         self.left_close.clicked.connect(self.close)
         self.left_visit.clicked.connect(self.initUI)
@@ -345,6 +390,18 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.forwarddog.move(0.5 * self.width, 0.03 * self.height)
         self.forwarddog.clicked.connect(self.forwrad_dog)
 
+
+ 
+
+        # self.setWindowOpacity(0.9) # 设置窗口透明度 
+        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
+        self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
+        self.left_visit.setFixedSize(15, 15)  # 设置按钮大小 
+        self.left_mini.setFixedSize(15, 15) # 设置最小化按钮大小
+
+        self.left_close.setStyleSheet('''QPushButton{background:#F76677;border-radius:5px;}QPushButton:hover{background:red;}''') 
+        self.left_visit.setStyleSheet('''QPushButton{background:#F7D674;border-radius:5px;}QPushButton:hover{background:yellow;}''') 
+        self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
         if self.flag == 1:
             self.initUI()
         self.get_result()
@@ -365,14 +422,9 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.label.setStyleSheet("QLabel{background:white;}"
                  "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
                  )
-#
-        self.dog_jpg = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.jpg'
-        self.dog_txt = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.txt'
-
-        with open(self.dog_txt, "r") as f:  # 打开文件
-              data = f.read()  # 读取文件
-
-        self.labelText.setText(data)
+        # with open("data/dog_data/dog1.txt", "r") as f:  # 打开文件
+        #     data = f.read()  # 读取文件
+        self.labelText.setText(str(self.dog_what[self.sortdog]))
         self.sortdog += 1
 
     def next_dog(self):
@@ -395,6 +447,7 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
             self.label.setPixmap(self.jpgkuang)
             self.labelText.setText(str(self.dog_what[self.sortdog]))
             self.sortdog -= 1
+
 
 
     def returnback(self):
@@ -426,6 +479,8 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.forwarddog.move(0.7 * self.width, 0.03 * self.height)
 
 
+        
+
 #狗全部类别界面类
 class menu_all_dog(QtWidgets.QMainWindow, RoundShadow):
     def __init__(self, flag):
@@ -449,11 +504,27 @@ class menu_all_dog(QtWidgets.QMainWindow, RoundShadow):
         self.left_visit = QPushButton(self) # 空白按钮 
         self.left_mini = QPushButton(self)  # 最小化按钮
 
+        self.left_close.move(0.97 * self.width, 0.03 * self.height)
+        self.left_visit.move(0.95 * self.width, 0.03 * self.height)
+        self.left_mini.move(0.93* self.width, 0.03 * self.height)
+
 
 
         self.left_close.clicked.connect(self.close)
         self.left_visit.clicked.connect(self.initUI)
         self.left_mini.clicked.connect(self.showMinimized)
+
+ 
+
+        # self.setWindowOpacity(0.9) # 设置窗口透明度 
+        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
+        self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
+        self.left_visit.setFixedSize(15, 15)  # 设置按钮大小 
+        self.left_mini.setFixedSize(15, 15) # 设置最小化按钮大小
+
+        self.left_close.setStyleSheet('''QPushButton{background:#F76677;border-radius:5px;}QPushButton:hover{background:red;}''') 
+        self.left_visit.setStyleSheet('''QPushButton{background:#F7D674;border-radius:5px;}QPushButton:hover{background:yellow;}''') 
+        self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
 
         if self.flag == 1:
             self.initUI()
@@ -476,10 +547,6 @@ class menu_all_dog(QtWidgets.QMainWindow, RoundShadow):
         self.flag = 1
         
 if __name__ == "__main__":
-    img_dir = 'data/dog_data/'
-    path_all = []
-    for path in os.listdir(img_dir):
-        path_all.append(path)
     app = QtWidgets.QApplication(sys.argv)
     # apply_stylesheet(app, theme = 'light_blue.xml')
     main_Widnow = menu_page(flag = 0)

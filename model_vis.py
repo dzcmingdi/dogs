@@ -20,22 +20,6 @@ class RoundShadow(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
 
-        self.width = self.size().width()
-        self.height = self.size().height()
-        self.resize(1000, 800)
-
-                #设置样式
-        self.left_close = QPushButton(self) # 关闭按钮 
-        self.left_visit = QPushButton(self) # 空白按钮 
-        self.left_mini = QPushButton(self)  # 最小化按钮
-
-        self.left_close.move(0.97 * self.width, 0.03 * self.height)
-        self.left_visit.move(0.95 * self.width, 0.03 * self.height)
-        self.left_mini.move(0.93* self.width, 0.03 * self.height)
-
-        self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
-        self.left_visit.setFixedSize(15, 15)  # 设置按钮大小 
-        self.left_mini.setFixedSize(15, 15) # 设置最小化按钮大小
 
     def paintEvent(self, event):
         # 圆角
