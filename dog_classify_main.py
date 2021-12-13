@@ -32,6 +32,6 @@ class DogClassify:
             image_c = torchvision.transforms.functional.crop(image, y, x, h, w)
             label = classify(self.classify_sequential, image_c)
             labels.append(label)
-        return labels
+        return labels, boxes
 
 

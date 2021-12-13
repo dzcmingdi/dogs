@@ -9,6 +9,7 @@ from torch._C import set_flush_denormal
 from model_vis import RoundShadow
 from model_vis import circle_corner, paint_object
 from dog_classify_main import DogClassify
+import os
 #主界面类
 class menu_page(QtWidgets.QMainWindow, RoundShadow):
     def __init__(self, flag):
@@ -350,6 +351,7 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.jpg = jpg
         self.imgName = imgName
         self.label = QLabel(self)
+        self.labelTrue = QLabel(self)
         self.labelText = QLabel(self)
         self.sortdog = 0
         self.boxes = boxes
@@ -390,9 +392,6 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.forwarddog.move(0.5 * self.width, 0.03 * self.height)
         self.forwarddog.clicked.connect(self.forwrad_dog)
 
-
- 
-
         # self.setWindowOpacity(0.9) # 设置窗口透明度 
         # self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
         self.left_close.setFixedSize(15,15) # 设置关闭按钮的大小 
@@ -402,52 +401,62 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.left_close.setStyleSheet('''QPushButton{background:#F76677;border-radius:5px;}QPushButton:hover{background:red;}''') 
         self.left_visit.setStyleSheet('''QPushButton{background:#F7D674;border-radius:5px;}QPushButton:hover{background:yellow;}''') 
         self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
+        self.labelTrue.setStyleSheet("QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
+                 )
+        self.label.setStyleSheet("QLabel{background:white;}"
+                 "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
+                 )
+        self.label.setStyleSheet("QLabel{background:white;}"
+                 "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
+                 )
+        self.label.move(50, self.halfheight - self.jpg.height() // 2)
+
+        self.labelText.setFixedSize(0.1 * self.width, 0.15 * self.height)
+        self.labelText.move(0.16 * self.width, 0.75 * self.height)
+
+
         if self.flag == 1:
             self.initUI()
         self.get_result()
 
     def get_result(self):    
-        self.label.setStyleSheet("QLabel{background:white;}"
-                 "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
-                 )
-        self.label.move(self.halfwidth - self.jpg.width() // 2, self.halfheight - self.jpg.height() // 2)
+
         self.label.setFixedSize(self.jpg.width(), self.jpg.height())
         self.jpgkuang = paint_object(self.imgName, self.boxes[self.sortdog])
         self.jpgkuang = self.jpgkuang.scaled(self.jpg.width(), self.jpg.height())
+        self.label.setPixmap(self.jpgkuang)
 
-        self.label.setPixmap(self.jpg)
+        self.dog_jpg = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.jpg'
+        self.dog_txt = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.txt'
+        with open(self.dog_txt, encoding='utf-8',mode="r") as f:  # 打开文件
+            data = f.read()  # 读取文件
+        self.labelText.setText(data)
 
-        self.labelText.setFixedSize(0.1 * self.width, 0.15 * self.height)
-        self.labelText.move(0.16 * self.width, 0.75 * self.height)
-        self.label.setStyleSheet("QLabel{background:white;}"
-                 "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
-                 )
-        # with open("data/dog_data/dog1.txt", "r") as f:  # 打开文件
-        #     data = f.read()  # 读取文件
-        self.labelText.setText(str(self.dog_what[self.sortdog]))
-        self.sortdog += 1
+        self.jpgTrue = QtGui.QPixmap(self.dog_jpg)
+        if self.jpgTrue.width() <= self.jpgTrue.height() * 1.25:
+            self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // (self.jpgTrue.height() / self.halfheight), self.jpgTrue.height() // (self.jpgTrue.height() / self.halfheight))
+        else:
+            self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // (self.jpgTrue.width() / self.halfwidth), self.jpgTrue.height() // (self.jpgTrue.width() / self.halfwidth))
+        self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // 1.5, self.jpgTrue.height() // 1.5)
+        self.labelTrue.move(self.width // 4 - self.jpgTrue.width() // 3 + self.width // 2, self.height // 4 - self.jpgTrue.height() // 3)
+        self.labelTrue.setFixedSize(self.jpgTrue.width(), self.jpgTrue.height())
+        self.labelTrue.setPixmap(self.jpgTrue)
 
     def next_dog(self):
+        self.sortdog += 1
         if len(self.dog_what) == self.sortdog:
             self.dog_picture = QMessageBox.about(self, '提示', '已经是最后一张狗了')
+            self.sortdog -= 1
         else:
-            self.jpgkuang = paint_object(self.imgName, self.boxes[self.sortdog])
-            self.jpgkuang = self.jpgkuang.scaled(self.jpg.width(), self.jpg.height())
-            self.label.setPixmap(self.jpgkuang)
-            self.labelText.setText(str(self.dog_what[self.sortdog]))
-            self.sortdog += 1
+            self.get_result()
 
     def forwrad_dog(self):
-        if self.sortdog == 1:
+        if self.sortdog == 0 :
             self.dog_picture = QMessageBox.about(self, '提示', '这是第一张狗了')
         else:
             #传入boxes
-            self.jpgkuang = paint_object(self.imgName, self.boxes[self.sortdog])
-            self.jpgkuang = self.jpgkuang.scaled(self.jpg.width(), self.jpg.height())
-            self.label.setPixmap(self.jpgkuang)
-            self.labelText.setText(str(self.dog_what[self.sortdog]))
             self.sortdog -= 1
-
+            self.get_result()
 
 
     def returnback(self):
@@ -548,7 +557,11 @@ class menu_all_dog(QtWidgets.QMainWindow, RoundShadow):
         
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    img_dir = 'data/dog_data/'
+    path_all = []
+    for path in os.listdir(img_dir):
+        path_all.append(path)
     # apply_stylesheet(app, theme = 'light_blue.xml')
-    main_Widnow = menu_page(flag = 0)
+    main_Widnow = dog_classify(flag = 0)
     main_Widnow.show()
     sys.exit(app.exec_())

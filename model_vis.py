@@ -73,14 +73,14 @@ if __name__ == '__main__':
 
 #批量创建文件夹
 
-def paint_object(imgName, boxes):
+def paint_object(imgName, box):
     img_src = cv.imread(imgName)
-    #✍boxeskuang
-    
-
-
-
-    temp_imgSrc = QImage(img_src[:], img_src.shape[1], img_src.shape[0], img_src.shape[1] * 3, QImage.Format_BGR888)
+    height, width = img_src.shape[0], img_src.shape[1]
+    x1, y1 = (box[0] - box[2] / 2) * width, (box[1] - box[3] / 2) * height
+    x2, y2 = (box[0] + box[2] / 2) * width, (box[1] + box[3] / 2) * height
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+    img_target = cv.rectangle(img_src, (x1, y1), (x2, y2), (0 ,255 ,127),thickness=10)
+    temp_imgSrc = QImage(img_target[:], img_target.shape[1], img_target.shape[0], img_target.shape[1] * 3, QImage.Format_BGR888)
     pixmap_imgSrc = QPixmap.fromImage(temp_imgSrc)
     return pixmap_imgSrc
 
