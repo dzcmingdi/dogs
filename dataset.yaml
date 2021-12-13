@@ -1,0 +1,5 @@
+train: ../dogs_detection/train
+val: ../dogs_detection/validate
+nc: 1
+names: [ 'dog' ]
+
