@@ -5,11 +5,17 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPalette,QBrush,QPixmap
+from cv2 import sepFilter2D
 from torch._C import set_flush_denormal
 from model_vis import RoundShadow
 from model_vis import circle_corner, paint_object
 from dog_classify_main import DogClassify
 import os
+import win32com.client
+from PyQt5.Qt import QThread
+import sys
+import winsound
+
 #主界面类
 class menu_page(QtWidgets.QMainWindow, RoundShadow):
     def __init__(self, flag):
@@ -75,7 +81,7 @@ class menu_page(QtWidgets.QMainWindow, RoundShadow):
         self.left_mini.setStyleSheet('''QPushButton{background:#6DDF6D;border-radius:5px;}QPushButton:hover{background:green;}''')
         self.labelText.setStyleSheet('background-color: rgb(20, 20, 0)')    #设置背景色
         self.labelText.setStyleSheet('font-size:40px;color:balck;font-family:黑体 ') #设置字体大小，字体颜色,字体
-#显示图片的label，目测八张
+#显示图片的label，目测6张
         self.label_dogtitle1 = QLabel(self)
         self.label_dogtitle2 = QLabel(self)
         self.create_titledog()
@@ -352,24 +358,35 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.imgName = imgName
         self.label = QLabel(self)
         self.labelTrue = QLabel(self)
-        self.labelText = QLabel(self)
+        self.te = QTextEdit(self)  #本办法也适用于QTextBrowser,QPlainTextEdit
         self.sortdog = 0
         self.boxes = boxes
+        self.speak_btn = QPushButton(self)
+        self.btn_return = QPushButton(self)
+        self.pause_speak = QPushButton(self)
 
 
-                
         self.width = self.size().width()
         self.height = self.size().height()
 
         self.halfwidth = self.width // 2
         self.halfheight = self.height // 2
 
-        self.btn_return = QPushButton(self)
+#返回按钮
         self.btn_return.move(0.01 * self.width, 0.03 * self.height)
         self.btn_return.clicked.connect(self.returnback)
         self.btn_return.setStyleSheet("QPushButton{border-image:url(./data/images/return.png)}")
+#播放语音按钮
+        self.speak_btn.move(0.01 * self.width, 0.9 * self.height)
+        self.speak_btn.clicked.connect(self.speak_txt)
+        self.speak_btn.setFixedSize(50, 50)
+        self.speak_btn.setStyleSheet("QPushButton{border-image:url(./data/images/play.png)}")
+#pause 按钮
+        self.pause_speak.move(0.2 * self.width, 0.9 * self.height)
+        self.pause_speak.clicked.connect(self.pause_txt)
+        self.pause_speak.setFixedSize(50, 50)
+        self.pause_speak.setStyleSheet("QPushButton{border-image:url(./data/images/pause.png)}")
 
-                #设置样式
         self.left_close = QPushButton(self) # 关闭按钮 
         self.left_visit = QPushButton(self) # 空白按钮 
         self.left_mini = QPushButton(self)  # 最小化按钮
@@ -381,16 +398,18 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.left_close.clicked.connect(self.close)
         self.left_visit.clicked.connect(self.initUI)
         self.left_mini.clicked.connect(self.showMinimized)
-#如果多dog，需要按鈕实现切换
+
+#如果多dog，需要按鈕实现切换（上一张下一张）
         self.nextdog = QPushButton(self)
-        self.nextdog.setText('next')
+        self.nextdog.setStyleSheet("QPushButton{border-image:url(./data/images/next.png)}")
         self.nextdog.move(0.7 * self.width, 0.03 * self.height)
         self.nextdog.clicked.connect(self.next_dog)
 
         self.forwarddog = QPushButton(self)
-        self.forwarddog.setText('next')
         self.forwarddog.move(0.5 * self.width, 0.03 * self.height)
         self.forwarddog.clicked.connect(self.forwrad_dog)
+        self.forwarddog.setStyleSheet("QPushButton{border-image:url(./data/images/return.png)}")
+
 
         # self.setWindowOpacity(0.9) # 设置窗口透明度 
         # self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
@@ -409,38 +428,46 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.label.setStyleSheet("QLabel{background:white;}"
                  "QLabel{color:rgb(300,300,300,120);font-size:10px;font-weight:bold;font-family:宋体;}"
                  )
-        self.label.move(50, self.halfheight - self.jpg.height() // 2)
+        self.te.setStyleSheet("font:63 11pt 微软雅黑;color:rgb(0,0,0); margin:10px 0px 5px;")
 
-        self.labelText.setFixedSize(0.1 * self.width, 0.15 * self.height)
-        self.labelText.move(0.16 * self.width, 0.75 * self.height)
 
 
         if self.flag == 1:
             self.initUI()
         self.get_result()
 
-    def get_result(self):    
+        #假设文本内容，实际可以用任何你需要的文本，暂时当作提示说明。
 
-        self.label.setFixedSize(self.jpg.width(), self.jpg.height())
+        #self.te.setReadOnly(True)   #把光标隐去，不加就显示光标移动
+
+    def get_result(self): 
+
         self.jpgkuang = paint_object(self.imgName, self.boxes[self.sortdog])
-        self.jpgkuang = self.jpgkuang.scaled(self.jpg.width(), self.jpg.height())
+        self.jpgkuang = self.property_size(self.jpgkuang)
+        self.label.setFixedSize(self.jpgkuang.width(), self.jpgkuang.height())
+
         self.label.setPixmap(self.jpgkuang)
+        self.label.move(50, self.halfheight - self.jpgkuang.height() // 2)
+
 
         self.dog_jpg = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.jpg'
         self.dog_txt = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.txt'
-        with open(self.dog_txt, encoding='utf-8',mode="r") as f:  # 打开文件
-            data = f.read()  # 读取文件
-        self.labelText.setText(data)
+        self.dog_wav = img_dir + path_all[self.dog_what[self.sortdog]] + '/' + path_all[self.dog_what[self.sortdog]] + '.wav'
 
         self.jpgTrue = QtGui.QPixmap(self.dog_jpg)
-        if self.jpgTrue.width() <= self.jpgTrue.height() * 1.25:
-            self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // (self.jpgTrue.height() / self.halfheight), self.jpgTrue.height() // (self.jpgTrue.height() / self.halfheight))
-        else:
-            self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // (self.jpgTrue.width() / self.halfwidth), self.jpgTrue.height() // (self.jpgTrue.width() / self.halfwidth))
+        self.jpgTrue = self.property_size(self.jpgTrue)
         self.jpgTrue = self.jpgTrue.scaled(self.jpgTrue.width() // 1.5, self.jpgTrue.height() // 1.5)
         self.labelTrue.move(self.width // 4 - self.jpgTrue.width() // 3 + self.width // 2, self.height // 4 - self.jpgTrue.height() // 3)
         self.labelTrue.setFixedSize(self.jpgTrue.width(), self.jpgTrue.height())
         self.labelTrue.setPixmap(self.jpgTrue)
+
+        with open(self.dog_txt, encoding='utf-8',mode="r") as f:  # 打开文件
+            self.data = f.read()  # 读取文件
+        self.te.setText(self.data)
+        
+        self.te.move(self.width // 4 - self.jpgTrue.width() // 3 + self.width // 2, self.height // 4 - self.jpgTrue.height() // 3 + 1.2* self.jpgTrue.height())
+        self.te.resize(self.jpgTrue.width(),self.jpgTrue.height())
+
 
     def next_dog(self):
         self.sortdog += 1
@@ -448,6 +475,7 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
             self.dog_picture = QMessageBox.about(self, '提示', '已经是最后一张狗了')
             self.sortdog -= 1
         else:
+            winsound.PlaySound(playsound, winsound.SND_PURGE)
             self.get_result()
 
     def forwrad_dog(self):
@@ -455,6 +483,7 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
             self.dog_picture = QMessageBox.about(self, '提示', '这是第一张狗了')
         else:
             #传入boxes
+            winsound.PlaySound(playsound, winsound.SND_PURGE)
             self.sortdog -= 1
             self.get_result()
 
@@ -485,7 +514,29 @@ class predict_result(QtWidgets.QMainWindow, RoundShadow):
         self.flag = 1
 
         self.nextdog.move(0.7 * self.width, 0.03 * self.height)
-        self.forwarddog.move(0.7 * self.width, 0.03 * self.height)
+        self.forwarddog.move(0.5 * self.width, 0.03 * self.height)
+        self.pause_speak.move(0.2 * self.width, 0.9 * self.height)
+        self.speak_btn.move(0.01 * self.width, 0.9 * self.height)
+
+        self.get_result()
+
+
+
+
+    def property_size(self, jpg):
+        if jpg.width() <= jpg.height() * 1.25:
+            jpg = jpg.scaled(jpg.width() // (jpg.height() / self.halfheight), jpg.height() // (jpg.height() / self.halfheight))
+        else:
+            jpg = jpg.scaled(jpg.width() // (jpg.width() / self.halfwidth), jpg.height() // (jpg.width() / self.halfwidth))
+        return jpg
+
+    def speak_txt(self):
+        global playsound
+        playsound = winsound.PlaySound(self.dog_wav, winsound.SND_ASYNC)
+    def pause_txt(self):
+        winsound.PlaySound(playsound, winsound.SND_PURGE)
+
+
 
 
         
@@ -555,7 +606,16 @@ class menu_all_dog(QtWidgets.QMainWindow, RoundShadow):
 
         self.flag = 1
         
+# class Thread_1(QThread):
+#     def __init__(self, wav):
+#         super().__init__()
+#         self.wav = wav
+
+#     def run(self):
+#         playsound(self.wav)
+    
 if __name__ == "__main__":
+    playsound = winsound.PlaySound(None, winsound.SND_NODEFAULT)
     app = QtWidgets.QApplication(sys.argv)
     img_dir = 'data/dog_data/'
     path_all = []
