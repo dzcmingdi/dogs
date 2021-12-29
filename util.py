@@ -72,3 +72,10 @@ def to_this_yolo_csv():  # 修改数据格式以适配该yolo实现
 
     data_frames = pandas.DataFrame(data, columns=['filename', 'xmin', 'ymin', 'xmax', 'ymax'])
     data_frames.to_csv(os.path.join(root_path, 'labels.csv'))
+
+def ratio_transform(x):
+    h, w = x.shape[1:3]
+    padding = abs(h - w) // 2
+    padding_border = [0, padding, 0, padding] if h < w else [padding, 0, padding, 0]
+    pad = torchvision.transforms.Pad(padding=padding_border)
+    return pad(x)
